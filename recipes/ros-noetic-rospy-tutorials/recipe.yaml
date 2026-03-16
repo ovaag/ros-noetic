@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+
+package:
+  name: ros-noetic-rospy-tutorials
+  version: 0.10.3
+source:
+  git: https://github.com/ros-gbp/ros_tutorials-release.git
+  tag: release/noetic/rospy_tutorials/0.10.3-1
+  target_directory: ros-noetic-rospy-tutorials/src/work
+
+build:
+  script: ${{ '$RECIPE_DIR/build_catkin.sh' if unix or wasm32 else '%RECIPE_DIR%\\bld_catkin.bat' }}
+  number: 24
+  post_process:
+    - files:
+        - '*.pc'
+      regex: (?:-L|-I)?"?([^;\s]+/sysroot/)
+      replacement: $$(CONDA_BUILD_SYSROOT_S)
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/sysroot)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/MacOSX\d*\.?\d*\.sdk)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+about:
+  homepage: http://www.ros.org/wiki/rospy_tutorials
+  repository: https://github.com/ros/ros_tutorials
+  license: BSD-3-Clause
+  summary: This package attempts to show the features of ROS python API step-by-step, including using messages, servers, parameters, etc. These tutorials are compatible with the nodes in roscpp_tutorial.
+extra:
+  recipe-maintainers:
+    - ros-forge
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - if: target_platform!='emscripten-wasm32'
+      then:
+        - ${{ stdlib('c') }}
+    - ninja
+    - python
+    - setuptools
+    - git
+    - git-lfs
+    - if: unix
+      then:
+        - patch
+        - make
+        - coreutils
+    - if: win
+      then:
+        - m2-patch
+    - if: osx
+      then:
+        - tapi
+    - if: build_platform != target_platform
+      then:
+        - pkg-config
+    - cmake
+    - cython
+    - if: build_platform != target_platform
+      then:
+        - python
+        - cross-python_${{ target_platform }}
+        - numpy
+  host:
+    - if: build_platform == target_platform
+      then:
+        - pkg-config
+    - numpy
+    - pip
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-catkin
+    - ros-noetic-message-generation
+    - ros-noetic-message-runtime
+    - ros-noetic-roscpp-tutorials
+    - ros-noetic-rospy
+    - ros-noetic-rostest
+    - ros-noetic-std-msgs
+  run:
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-message-runtime
+    - ros-noetic-rospy
+    - ros-noetic-std-msgs

@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+
+package:
+  name: ros-noetic-rqt-logger-level
+  version: 0.4.13
+source:
+  git: https://github.com/ros-gbp/rqt_logger_level-release.git
+  tag: release/noetic/rqt_logger_level/0.4.13-1
+  target_directory: ros-noetic-rqt-logger-level/src/work
+
+build:
+  script: ${{ '$RECIPE_DIR/build_catkin.sh' if unix or wasm32 else '%RECIPE_DIR%\\bld_catkin.bat' }}
+  number: 24
+  post_process:
+    - files:
+        - '*.pc'
+      regex: (?:-L|-I)?"?([^;\s]+/sysroot/)
+      replacement: $$(CONDA_BUILD_SYSROOT_S)
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/sysroot)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/MacOSX\d*\.?\d*\.sdk)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+about:
+  homepage: http://wiki.ros.org/rqt_logger_level
+  repository: https://github.com/ros-visualization/rqt_logger_level
+  license: BSD-3-Clause
+  summary: rqt_logger_level provides a GUI plugin for configuring the logger level of ROS nodes.<br/><br/>rqt_logger_level takes over `wx`-based tool [[rxloggerlevel]].
+extra:
+  recipe-maintainers:
+    - ros-forge
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - if: target_platform!='emscripten-wasm32'
+      then:
+        - ${{ stdlib('c') }}
+    - ninja
+    - python
+    - setuptools
+    - git
+    - git-lfs
+    - if: unix
+      then:
+        - patch
+        - make
+        - coreutils
+    - if: win
+      then:
+        - m2-patch
+    - if: osx
+      then:
+        - tapi
+    - if: build_platform != target_platform
+      then:
+        - pkg-config
+    - cmake
+    - cython
+    - if: build_platform != target_platform
+      then:
+        - python
+        - cross-python_${{ target_platform }}
+        - numpy
+  host:
+    - if: build_platform == target_platform
+      then:
+        - pkg-config
+    - numpy
+    - pip
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-catkin
+    - setuptools
+  run:
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-python-qt-binding
+    - ros-noetic-rosnode
+    - ros-noetic-rospy
+    - ros-noetic-rosservice
+    - ros-noetic-rqt-gui
+    - ros-noetic-rqt-gui-py
+    - rospkg

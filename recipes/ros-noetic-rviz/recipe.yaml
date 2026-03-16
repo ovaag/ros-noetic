@@ -1,0 +1,150 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+
+package:
+  name: ros-noetic-rviz
+  version: 1.14.26
+source:
+  git: https://github.com/ros-gbp/rviz-release.git
+  tag: release/noetic/rviz/1.14.26-1
+  target_directory: ros-noetic-rviz/src/work
+  patches:
+    - patch/ros-noetic-rviz.patch
+
+build:
+  script: ${{ '$RECIPE_DIR/build_catkin.sh' if unix or wasm32 else '%RECIPE_DIR%\\bld_catkin.bat' }}
+  number: 24
+  post_process:
+    - files:
+        - '*.pc'
+      regex: (?:-L|-I)?"?([^;\s]+/sysroot/)
+      replacement: $$(CONDA_BUILD_SYSROOT_S)
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/sysroot)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/MacOSX\d*\.?\d*\.sdk)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+about:
+  homepage: http://wiki.ros.org/rviz
+  repository: https://github.com/ros-visualization/rviz
+  license: BSD-3-Clause OR CC0-1.0
+  summary: 3D visualization tool for ROS.
+extra:
+  recipe-maintainers:
+    - ros-forge
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - if: target_platform!='emscripten-wasm32'
+      then:
+        - ${{ stdlib('c') }}
+    - ninja
+    - python
+    - setuptools
+    - git
+    - git-lfs
+    - if: unix
+      then:
+        - patch
+        - make
+        - coreutils
+    - if: win
+      then:
+        - m2-patch
+    - if: osx
+      then:
+        - tapi
+    - if: build_platform != target_platform
+      then:
+        - pkg-config
+    - cmake
+    - cython
+    - if: build_platform != target_platform
+      then:
+        - python
+        - cross-python_${{ target_platform }}
+        - numpy
+    - pyqt-builder
+    - pyqt5-sip
+    - sip
+    - if: build_platform != target_platform
+      then:
+        - qt-main
+  host:
+    - assimp
+    - if: build_platform == target_platform
+      then:
+        - pkg-config
+    - eigen
+    - numpy
+    - ogre
+    - pip
+    - python
+    - qt-main
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-catkin
+    - ros-noetic-cmake-modules
+    - ros-noetic-geometry-msgs
+    - ros-noetic-image-transport
+    - ros-noetic-interactive-markers
+    - ros-noetic-laser-geometry
+    - ros-noetic-map-msgs
+    - ros-noetic-message-filters
+    - ros-noetic-message-generation
+    - ros-noetic-nav-msgs
+    - ros-noetic-pluginlib
+    - ros-noetic-python-qt-binding
+    - ros-noetic-resource-retriever
+    - ros-noetic-rosconsole
+    - ros-noetic-roscpp
+    - ros-noetic-roslib
+    - ros-noetic-rospy
+    - ros-noetic-rostest
+    - ros-noetic-rosunit
+    - ros-noetic-sensor-msgs
+    - ros-noetic-std-msgs
+    - ros-noetic-std-srvs
+    - ros-noetic-tf2-geometry-msgs
+    - ros-noetic-tf2-ros
+    - ros-noetic-urdf
+    - ros-noetic-visualization-msgs
+    - sip
+    - tinyxml2
+    - urdfdom
+    - urdfdom_headers
+    - yaml-cpp
+  run:
+    - assimp
+    - ogre
+    - python
+    - qt-main
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-geometry-msgs
+    - ros-noetic-image-transport
+    - ros-noetic-interactive-markers
+    - ros-noetic-laser-geometry
+    - ros-noetic-map-msgs
+    - ros-noetic-media-export
+    - ros-noetic-message-filters
+    - ros-noetic-message-runtime
+    - ros-noetic-nav-msgs
+    - ros-noetic-pluginlib
+    - ros-noetic-python-qt-binding
+    - ros-noetic-resource-retriever
+    - ros-noetic-rosconsole
+    - ros-noetic-roscpp
+    - ros-noetic-roslib
+    - ros-noetic-rospy
+    - ros-noetic-sensor-msgs
+    - ros-noetic-std-msgs
+    - ros-noetic-std-srvs
+    - ros-noetic-tf2-geometry-msgs
+    - ros-noetic-tf2-ros
+    - ros-noetic-urdf
+    - ros-noetic-visualization-msgs
+    - tinyxml2
+    - yaml-cpp
