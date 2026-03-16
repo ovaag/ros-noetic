@@ -1,0 +1,72 @@
+jobs:
+  stage_0_job_0:
+    name: moveit-commander moveit-ros-visualization moveit-planners-chomp webots-ros
+      moveit-servo
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+    needs: []
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    - name: Build ros-noetic-moveit-commander ros-noetic-moveit-ros-visualization
+        ros-noetic-moveit-planners-chomp ros-noetic-webots-ros ros-noetic-moveit-servo
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+        CURRENT_RECIPES: ros-noetic-moveit-commander ros-noetic-moveit-ros-visualization
+          ros-noetic-moveit-planners-chomp ros-noetic-webots-ros ros-noetic-moveit-servo
+        BUILD_TARGET: osx-arm64
+      run: |
+        export CI=azure
+        export GIT_BRANCH=$BUILD_SOURCEBRANCHNAME
+        export FEEDSTOCK_NAME=$(basename ${BUILD_REPOSITORY_NAME})
+        .scripts/build_unix.sh --target $BUILD_TARGET
+  stage_1_job_1:
+    name: pilz-industrial-motion-planner-testutils moveit-setup-assistant moveit-ros
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+    needs:
+    - stage_0_job_0
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    - name: Build ros-noetic-pilz-industrial-motion-planner-testutils ros-noetic-moveit-setup-assistant
+        ros-noetic-moveit-ros
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+        CURRENT_RECIPES: ros-noetic-pilz-industrial-motion-planner-testutils ros-noetic-moveit-setup-assistant
+          ros-noetic-moveit-ros
+        BUILD_TARGET: osx-arm64
+      run: |
+        export CI=azure
+        export GIT_BRANCH=$BUILD_SOURCEBRANCHNAME
+        export FEEDSTOCK_NAME=$(basename ${BUILD_REPOSITORY_NAME})
+        .scripts/build_unix.sh --target $BUILD_TARGET
+  stage_2_job_2:
+    name: pilz-industrial-motion-planner panda-moveit-config moveit-planners moveit
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+    needs:
+    - stage_1_job_1
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    - name: Build ros-noetic-pilz-industrial-motion-planner ros-noetic-panda-moveit-config
+        ros-noetic-moveit-planners ros-noetic-moveit
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+        CURRENT_RECIPES: ros-noetic-pilz-industrial-motion-planner ros-noetic-panda-moveit-config
+          ros-noetic-moveit-planners ros-noetic-moveit
+        BUILD_TARGET: osx-arm64
+      run: |
+        export CI=azure
+        export GIT_BRANCH=$BUILD_SOURCEBRANCHNAME
+        export FEEDSTOCK_NAME=$(basename ${BUILD_REPOSITORY_NAME})
+        .scripts/build_unix.sh --target $BUILD_TARGET
+name: build_osx_arm64
+on:
+  push:
+    branches:
+    - buildbranch_osx_arm64
