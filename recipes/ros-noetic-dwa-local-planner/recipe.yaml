@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+
+package:
+  name: ros-noetic-dwa-local-planner
+  version: 1.17.3
+source:
+  git: https://github.com/ros-gbp/navigation-release.git
+  tag: release/noetic/dwa_local_planner/1.17.3-1
+  target_directory: ros-noetic-dwa-local-planner/src/work
+
+build:
+  script: ${{ '$RECIPE_DIR/build_catkin.sh' if unix or wasm32 else '%RECIPE_DIR%\\bld_catkin.bat' }}
+  number: 24
+  post_process:
+    - files:
+        - '*.pc'
+      regex: (?:-L|-I)?"?([^;\s]+/sysroot/)
+      replacement: $$(CONDA_BUILD_SYSROOT_S)
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/sysroot)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/MacOSX\d*\.?\d*\.sdk)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+about:
+  homepage: http://wiki.ros.org/dwa_local_planner
+  license: BSD-3-Clause
+  summary: This package provides an implementation of the Dynamic Window Approach to local robot navigation on a plane. Given a global plan to follow and a costmap, the local planner produces velocity commands to send to a mobile base. This package supports any robot who's footprint can be represented as a convex polygon or cicrle, and exposes its configuration as ROS parameters that can be set in a launch file. The parameters for this planner are also dynamically reconfigurable. This package's ROS wrapper adheres to the BaseLocalPlanner interface specified in the<a href="http://wiki.ros.org/nav_core">nav_core</a>package.
+extra:
+  recipe-maintainers:
+    - ros-forge
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - if: target_platform!='emscripten-wasm32'
+      then:
+        - ${{ stdlib('c') }}
+    - ninja
+    - python
+    - setuptools
+    - git
+    - git-lfs
+    - if: unix
+      then:
+        - patch
+        - make
+        - coreutils
+    - if: win
+      then:
+        - m2-patch
+    - if: osx
+      then:
+        - tapi
+    - if: build_platform != target_platform
+      then:
+        - pkg-config
+    - cmake
+    - cython
+    - if: build_platform != target_platform
+      then:
+        - python
+        - cross-python_${{ target_platform }}
+        - numpy
+  host:
+    - if: build_platform == target_platform
+      then:
+        - pkg-config
+    - eigen
+    - numpy
+    - pip
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-angles
+    - ros-noetic-base-local-planner
+    - ros-noetic-catkin
+    - ros-noetic-cmake-modules
+    - ros-noetic-costmap-2d
+    - ros-noetic-dynamic-reconfigure
+    - ros-noetic-nav-core
+    - ros-noetic-nav-msgs
+    - ros-noetic-pluginlib
+    - ros-noetic-roscpp
+    - ros-noetic-sensor-msgs
+    - ros-noetic-tf2
+    - ros-noetic-tf2-geometry-msgs
+    - ros-noetic-tf2-ros
+  run:
+    - eigen
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-base-local-planner
+    - ros-noetic-costmap-2d
+    - ros-noetic-dynamic-reconfigure
+    - ros-noetic-nav-core
+    - ros-noetic-nav-msgs
+    - ros-noetic-pluginlib
+    - ros-noetic-roscpp
+    - ros-noetic-sensor-msgs
+    - ros-noetic-tf2
+    - ros-noetic-tf2-geometry-msgs
+    - ros-noetic-tf2-ros

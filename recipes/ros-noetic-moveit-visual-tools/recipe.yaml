@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+
+package:
+  name: ros-noetic-moveit-visual-tools
+  version: 3.6.1
+source:
+  git: https://github.com/ros-gbp/moveit_visual_tools-release.git
+  tag: release/noetic/moveit_visual_tools/3.6.1-1
+  target_directory: ros-noetic-moveit-visual-tools/src/work
+  patches:
+    - patch/ros-noetic-moveit-visual-tools.patch
+
+build:
+  script: ${{ '$RECIPE_DIR/build_catkin.sh' if unix or wasm32 else '%RECIPE_DIR%\\bld_catkin.bat' }}
+  number: 24
+  post_process:
+    - files:
+        - '*.pc'
+      regex: (?:-L|-I)?"?([^;\s]+/sysroot/)
+      replacement: $$(CONDA_BUILD_SYSROOT_S)
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/sysroot)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+    - files:
+        - '*.cmake'
+      regex: ([^;\s"]+/MacOSX\d*\.?\d*\.sdk)
+      replacement: $$ENV{CONDA_BUILD_SYSROOT}
+about:
+  homepage: https://github.com/ros-planning/moveit_visual_tools
+  repository: https://github.com/ros-planning/moveit_visual_tools/
+  license: BSD-3-Clause
+  summary: Helper functions for displaying and debugging MoveIt data in Rviz via published markers
+extra:
+  recipe-maintainers:
+    - ros-forge
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - if: target_platform!='emscripten-wasm32'
+      then:
+        - ${{ stdlib('c') }}
+    - ninja
+    - python
+    - setuptools
+    - git
+    - git-lfs
+    - if: unix
+      then:
+        - patch
+        - make
+        - coreutils
+    - if: win
+      then:
+        - m2-patch
+    - if: osx
+      then:
+        - tapi
+    - if: build_platform != target_platform
+      then:
+        - pkg-config
+    - cmake
+    - cython
+    - if: build_platform != target_platform
+      then:
+        - python
+        - cross-python_${{ target_platform }}
+        - numpy
+  host:
+    - ${{ 'libgl-devel' if linux }}
+    - ${{ 'libopengl-devel' if linux }}
+    - if: build_platform == target_platform
+      then:
+        - pkg-config
+    - numpy
+    - pip
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-catkin
+    - ros-noetic-cmake-modules
+    - ros-noetic-geometry-msgs
+    - ros-noetic-graph-msgs
+    - ros-noetic-moveit-core
+    - ros-noetic-moveit-ros-planning
+    - ros-noetic-roscpp
+    - ros-noetic-roslint
+    - ros-noetic-rviz-visual-tools
+    - ros-noetic-std-msgs
+    - ros-noetic-tf2-eigen
+    - ros-noetic-tf2-ros
+    - ros-noetic-trajectory-msgs
+    - ros-noetic-visualization-msgs
+  run:
+    - python
+    - ros-distro-mutex 0.7.* noetic_*
+    - ros-noetic-cmake-modules
+    - ros-noetic-geometry-msgs
+    - ros-noetic-graph-msgs
+    - ros-noetic-moveit-core
+    - ros-noetic-moveit-ros-planning
+    - ros-noetic-roscpp
+    - ros-noetic-roslint
+    - ros-noetic-rviz-visual-tools
+    - ros-noetic-std-msgs
+    - ros-noetic-tf2-eigen
+    - ros-noetic-tf2-ros
+    - ros-noetic-trajectory-msgs
+    - ros-noetic-visualization-msgs
